@@ -14,6 +14,7 @@ def instance():
     # Pass the dao mock to the UserController constructor.
     obj = UserController(dao=dao_mock)
     return obj
+
 @pytest.mark.unit
 def test_invalid_email(instance):
     """
@@ -47,13 +48,14 @@ def test_one_user_found(instance):
     instance.dao.find.assert_called_once_with({'email': right_email})
 
 @pytest.mark.unit
-def test_multiple_users_found(instance):
+def test_multiple_users_found(instance, capfd):
     right_emails = "user@example.com"
     user1 = {"id": 1, "email": right_emails}
     user2 = {"id": 2, "email": right_emails}
     instance.dao.find.return_value = [user1, user2]
-
     result = instance.get_user_by_email(right_emails)
+    out = capfd.readouterr()
+    assert f"Error: more than one user found with mail {right_emails}" in out.out
     assert result == user1
 
 @pytest.mark.unit
