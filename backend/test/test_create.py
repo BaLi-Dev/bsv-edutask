@@ -5,64 +5,44 @@ import pymongo
 import os, json
 
 @pytest.fixture
-def testDatabase():
-    """
-    Fixture to create a test database and collection.
-    """
-    client = pymongo.MongoClient("mongodb://root:root@mongodb:27017/")
-    db = client.edutask
-    collection = db.test_collection
-    collection.create_index("name", unique=True)
-    yield collection.name
-    # Teardown
-    collection.drop()    
-
-
-@pytest.fixture
-def dao(testDatabase):
+def dao():
     """
     Fixture to create a DAO instance with the test database.
     """
-    return DAO(testDatabase)
+    dao = DAO("todo")
+    yield dao
+    # Teardown
+    dao.collection.delete_many({}) 
 
 @pytest.mark.integration
 def test_create_valid_data(dao):
     """
     Test creating a document with valid data.
     """
-    data = {"name": "test", "active": True}
+    data = {"description":"hej", "done":False}
     result = dao.create(data)
     assert "_id" in result
-    assert result["name"] == "test"
-    assert result["active"] == True
+    assert result["description"] == "hej"
+    assert result["done"] == False
 
 
 @pytest.mark.integration
-def test_create_missing_name(dao):
+def test_create_missing_data(dao):
     """
     Test creating a document with valid data.
     """
-    data = {"active": True}
+    data = {"done":True}
     
     with pytest.raises(pymongo.errors.WriteError):
         dao.create(data)
 
-@pytest.mark.integration
-def test_create_missing_value(dao):
-    """
-    Test creating a document with valid data.
-    """
-    data = {"name": "test"}
-    
-    with pytest.raises(pymongo.errors.WriteError):
-        dao.create(data)
 
 @pytest.mark.integration
-def test_create_beson_type(dao):
+def test_create_bson_type(dao):
     """
     Test creating a document with valid data.
     """
-    data = {"name": 213123, "active": True}
+    data = {"description":89271349, "done":False}
     
     with pytest.raises(pymongo.errors.WriteError):
         dao.create(data)
@@ -72,9 +52,10 @@ def test_create_unique(dao):
     """
     Test creating a document with valid data.
     """
-    data = {"name": "213123", "active": True}
-    dao.create(data)
-    
+    data1 = {"description":"hej", "done":False}
+    data2 = {"description":"hej", "done":True}
+
+    dao.create(data1)
     with pytest.raises(pymongo.errors.WriteError):
-        dao.create(data)
+        dao.create(data2)
 
