@@ -23,3 +23,17 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+// Custom command for login
+Cypress.Commands.add('login', (email) => {
+  // Visit the main page
+  cy.visit('http://localhost:3000')
+  
+  // Find the email input and type the email
+  cy.contains('div', 'Email Address')
+    .find('input[type=text]')
+    .type(email)
+    
+  // Submit the form
+  cy.get('form').submit()
+})
