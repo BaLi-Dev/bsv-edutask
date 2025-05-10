@@ -47,15 +47,43 @@ def test_one_user_found(instance):
     assert result == expected_user
     instance.dao.find.assert_called_once_with({'email': right_email})
 
+@pytest.fixture
+def two_users():
+    """
+    Returns:
+      email (str): the duplicate email
+      user1 (dict): first user dict
+      user2 (dict): second user dict
+      users (list): [user1, user2]
+    """
+    email = "user@example.com"
+    user1 = {"id": 1, "email": email}
+    user2 = {"id": 2, "email": email}
+    return email, user1, user2, [user1, user2]
+
+
 @pytest.mark.unit
-def test_multiple_users_found(instance, capfd):
-    right_emails = "user@example.com"
-    user1 = {"id": 1, "email": right_emails}
-    user2 = {"id": 2, "email": right_emails}
-    instance.dao.find.return_value = [user1, user2]
-    result = instance.get_user_by_email(right_emails)
-    out = capfd.readouterr()
-    assert f"Error: more than one user found with mail {right_emails}" in out.out
+def test_logs_error_when_multiple_users_found(instance, two_users, capfd):
+    email, user1, user2, users = two_users
+    instance.dao.find.return_value = users
+
+    # Act
+    instance.get_user_by_email(email)
+
+    # Assert: it printed the “more than one user” error
+    out = capfd.readouterr().out
+    assert f"Error: more than one user found with mail {email}" in out
+
+
+@pytest.mark.unit
+def test_returns_first_user_when_multiple_users_found(instance, two_users):
+    email, user1, user2, users = two_users
+    instance.dao.find.return_value = users
+
+    # Act
+    result = instance.get_user_by_email(email)
+
+    # Assert: it returns the first user
     assert result == user1
 
 @pytest.mark.unit
