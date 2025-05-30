@@ -6,6 +6,8 @@ __pycache__/
 # Flask stuff:
 instance/
 .webassets-cache
+node_modules
+
 
 # dependencies
 frontend/node_modules
@@ -35,3 +37,5 @@ backend/test/solutions/
 frontend/cypress/e2e/r8uc1-solution.cy.js
 frontend/cypress/e2e/r8uc2-solution.cy.js
 frontend/cypress/e2e/r8uc3-solution.cy.js
+package-lock.json
+package.json

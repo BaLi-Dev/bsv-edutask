@@ -1,0 +1,29 @@
+name: Run Pytest
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies from requirement.pip
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.pip
+
+    - name: Run tests with pytest
+      run: |
+        pytest -m unit

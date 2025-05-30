@@ -52,8 +52,10 @@ def test_create_unique(dao):
     """
     Test creating a document with valid data.
     """
-    data = {"description":"hej", "done":False}
+    data1 = {"description":"hej", "done":False}
+    data2 = {"description":"hej", "done":True}
 
-    dao.create(data)
+    dao.create(data1)
     with pytest.raises(pymongo.errors.WriteError):
-        dao.create(data)
+        dao.create(data2)
+
