@@ -47,6 +47,42 @@ describe('Creating, toggling and removing to-do items from a task.', () => {
               'Content-Type': 'multipart/form-data'
             },
             form: false
+          }).then(() => {
+              cy.request({
+              method: 'GET',
+              url: `http://localhost:5000/tasks/ofuser/${uid}`
+              }).then((response) => {
+                const task = response.body.find(t => t.title === "test");
+                const todo = task.todos.find(t => t.description === "Test active");
+                const todo_id = todo._id.$oid || todo._id;
+
+                cy.request({
+                  method: 'PUT',
+                  url: `http://localhost:5000/todos/byid/${todo_id}`,
+                  form: true,
+                  body: {
+                    data: JSON.stringify({ '$set': { done: false } })
+                  }
+                });
+              });
+
+              cy.request({
+              method: 'GET',
+              url: `http://localhost:5000/tasks/ofuser/${uid}`
+              }).then((response) => {
+                const task = response.body.find(t => t.title === "test");
+                const todo = task.todos.find(t => t.description === "Test done");
+                const todo_id = todo._id.$oid || todo._id;
+
+                return cy.request({
+                  method: 'PUT',
+                  url: `http://localhost:5000/todos/byid/${todo_id}`,
+                  form: true,
+                  body: {
+                    data: JSON.stringify({ '$set': { done: true } })
+                  }
+                });
+              });
           });
         })
     });
@@ -75,33 +111,40 @@ describe('Creating, toggling and removing to-do items from a task.', () => {
         .should('be.disabled')
     })
 
-    it('toggle a to-do item unckecked', () => {
-        cy.contains('li', 'Test to-do item').should('be.visible')
+    it('toggle a to-do item unchecked',() => {
+        cy.contains('li', 'Test active').should('be.visible')
           .find('span[class="checker unchecked"]')
           .click()
 
-        cy.contains('li', 'Test to-do item').should('be.visible')
-          .find('span[class="checker checked"]')
-          .should('have.class', 'checker checked')
+        cy.contains('li', 'Test done')
+          .find('span[class="editable"]')
+          .should('have.css', 'text-decoration')
+          .and('include', 'line-through')
     })
 
-    it('toggle a to-do item ckecked', () => {
-        cy.contains('li', 'Test to-do item').should('be.visible')
-          .find('span[class="checker checked"]')
-          .click()
+    it('toggle a to-do item checked', () => {
+          cy.contains('li', 'Test done').should('be.visible')
+            .find('span[class*="checker"]')
+            .should('exist')
+            .click()
 
-        cy.contains('li', 'Test to-do item').should('be.visible')
-          .find('span[class="checker unchecked"]')
-          .should('have.class', 'checker unchecked')
+          cy.contains('li', 'Test done')
+            .find('span[class="editable"]')
+            .should('have.css', 'text-decoration')
+            .and('not.match', /line-through/);
     })
 
     it('deleting a to-do item', () => {
-        cy.contains('li', 'Test to-do item').should('be.visible')
+        cy.contains('li', 'Test delete').should('be.visible')
           .find('span[class="remover"]')
           .click()
 
+        cy.reload()
+        cy.login("mon.doe@gmail.com");
+        cy.contains('div', 'test').click();
+
         cy.get('ul[class="todo-list"]')
-          .should('not.contain.text', 'Test to-do item')
+          .should('not.contain.text', 'Test delete')
     })
 
     after(function () {
